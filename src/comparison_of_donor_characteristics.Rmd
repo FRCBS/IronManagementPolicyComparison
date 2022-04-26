@@ -1,0 +1,154 @@
+---
+title: "Compare national characteristics of donors for iron policy comparison"
+author: "Mikko Arvas"
+date: "`r Sys.time()`"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(WriteXLS)
+library(readxl)
+library(ggpubr)
+```
+
+Produce some example data from Finnish donation data.
+
+```{r}
+file <- "../results/DonorSummariesFin.xlsx"
+
+if (!file.exists(file)) {
+  load("~/Work/Data/progesa.rdata")
+  per_donor <- donation %>% filter(Year == "2018") %>%
+    filter(donat_phleb == 'K' | donat_phleb == '*') %>% 
+    group_by(donor) %>% 
+    summarise(
+      N = n(),
+      N_def = sum(as.numeric(as.character(Hb_deferral))),
+      N_don = N - N_def,
+      Sex = last(gender),
+      AgeGroup = last(age.group),
+      MeanHb = mean(Hb,na.rm = TRUE),
+      SdHb = sd(Hb,na.rm = TRUE)
+    )
+  per_sex_age_fin <- per_donor %>% 
+    group_by(Sex,AgeGroup) %>% 
+    summarise(
+      CountOfDonations = sum(N_don),
+      PercentageOfLowHb =  sum(N_def)/ sum(N_don),
+      CountOfDonors = n(),
+      MeanHb = mean(MeanHb,na.rm = TRUE),
+      SdHb = sd(SdHb,na.rm = TRUE)
+    )
+  rows <- nrow(per_sex_age_fin)
+    per_sex_age_dk <- 
+      per_sex_age_fin %>%
+      ungroup() %>% 
+      mutate(
+        CountOfDonations = CountOfDonations *1.3 ,
+      PercentageOfLowHb =  PercentageOfLowHb - rnorm(rows,mean=0)/100,
+      CountOfDonors = CountOfDonors *1.3,
+      MeanHb = MeanHb - rnorm(rows,mean=0)/5 ,
+      SdHb = SdHb - rnorm(rows,mean=0)/50
+        
+      )
+    
+  per_sex_age_nl <- 
+      per_sex_age_fin %>%
+      ungroup() %>% 
+      mutate(
+        CountOfDonations = CountOfDonations *4 ,
+      PercentageOfLowHb =  PercentageOfLowHb - rnorm(rows,mean=0)/100,
+      CountOfDonors = CountOfDonors *4,
+      MeanHb = MeanHb - rnorm(rows,mean=0)/5 ,
+      SdHb = SdHb - rnorm(rows,mean=0)/50
+        
+      )
+  WriteXLS(per_sex_age_fin, ExcelFileName = file)
+  WriteXLS(per_sex_age_dk, ExcelFileName = "../results/DonorSummariesDK.xlsx")
+  WriteXLS(per_sex_age_nl, ExcelFileName = "../results/DonorSummariesNL.xlsx")
+}
+
+```
+
+
+After collecting xls from different countries read them in.
+
+
+```{r}
+
+fin<- read_excel(file) %>% mutate(Country="FIN")
+nl<- read_excel("../results/DonorSummariesNL.xlsx") %>% mutate(Country="NL")
+dk<- read_excel("../results/DonorSummariesDK.xlsx") %>% mutate(Country="DK")
+data <- bind_rows(nl,dk,fin) %>% 
+  mutate(Sex=as.factor(Sex),
+         Country=as.factor(Country),
+         AgeGroup = fct_relevel(as.ordered(AgeGroup),"[18,25]",after=0)
+  )
+
+summary(data)
+```
+
+Count of donors
+
+```{r}
+p1 <- ggplot(data,aes(x=AgeGroup,y=CountOfDonors,fill=Country))
+p1 <- p1 + geom_col(position = "dodge")
+p1 <- p1 + facet_grid(.~Sex)
+p1 <- p1 + xlab("") + ylab("Count of donors")
+p1 <- p1 + theme(legend.position="none")
+p1
+ggsave(filename = "../results/countdonor.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+
+```
+
+```{r}
+p2 <- ggplot(data,aes(x=AgeGroup,y=CountOfDonations,fill=Country))
+p2 <- p2 + geom_col(position = "dodge")
+p2 <- p2 + facet_grid(.~Sex)
+p2 <- p2 + xlab("") + ylab("Count of donations")
+p2 <- p2 + theme(legend.position="none")
+p2
+ggsave(filename = "../results/countdonations.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+
+```
+
+
+```{r}
+p3 <- ggplot(data,aes(x=AgeGroup,y=PercentageOfLowHb,color=Country))
+p3 <- p3 + geom_point(position=position_dodge(width = 1),shape="diamond",size=3)
+p3 <- p3 + facet_grid(.~Sex)
+p3 <- p3 + xlab("") + ylab("Proportion of low Hb")
+p3 <- p3 + theme(legend.position="none")
+ggsave(filename = "../results/propdef.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+p3
+```
+
+
+
+
+```{r}
+p4 <- ggplot(data,aes(x=AgeGroup,y=MeanHb,fill=Country))
+p4 <- p4 + geom_pointrange(aes(x=AgeGroup,y=MeanHb, ymin=MeanHb-SdHb,ymax=MeanHb+SdHb,color=Country),position=position_dodge(width = 1))
+p4 <- p4 + facet_grid(.~Sex)
+p4 <- p4 + xlab("Age group") + ylab("Average Hb")
+p4 <- p4 + theme(legend.position="bottom")
+p4
+ggsave(filename = "../results/meanhb.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+```
+
+
+
+```{r}
+px <- ggarrange(p1,
+          p2,
+          p3,
+          p4,
+          labels=c("A","B","C","D"),
+          ncol=1,
+          nrow=4)
+```
+
+```{r}
+ggsave(px,filename = "../results/allfour.pdf", dpi = 600,width =  180, height = 400,units = "mm")
+```
+
