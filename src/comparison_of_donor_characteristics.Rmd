@@ -11,6 +11,16 @@ library(readxl)
 library(ggpubr)
 ```
 
+TODO:
+-UK -> ENG
+
+-normalise by population /100 000 or /10 000 inhabitants
+
+-Katja will send new numbers which take into account the prescreening policy
+
+-Johanna will get current Finnish data
+
+
 Produce some example data from Finnish donation data.
 
 ```{r}
