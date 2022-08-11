@@ -37,9 +37,10 @@ if (!file.exists(file)) {
       Sex = last(gender),
       AgeGroup = last(age.group),
       Hb = Hb * 0.01551 * 4, # mmol/l conversion
-      MeanHb = mean(Hb,na.rm = TRUE),
-      SdHb = sd(Hb,na.rm = TRUE)
-    )
+      #MeanHb = mean(Hb,na.rm = TRUE), #these need to count 
+      #SdHb = sd(Hb,na.rm = TRUE) # 
+    ) #%>% 
+    
   
   per_donor <- per_donor %>% 
     left_join(
@@ -58,8 +59,8 @@ if (!file.exists(file)) {
       `Count Of Donations` = sum(N_don),
       `Percentage Of LowHb` =  sum(N_def)/ sum(N_don),
       `Count Of Donors` = n(),
-      MeanHb = mean(MeanHb,na.rm = TRUE),
-      SdHb = sd(SdHb,na.rm = TRUE)
+      MeanHb = mean(Hb,na.rm = TRUE),
+      SdHb = sd(Hb,na.rm = TRUE)
     ) %>% 
     rename(
       `Age Group` = AgeGroup
