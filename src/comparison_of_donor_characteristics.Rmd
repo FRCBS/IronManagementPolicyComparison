@@ -9,21 +9,19 @@ library(tidyverse)
 library(WriteXLS)
 library(readxl)
 library(ggpubr)
+
+#echo "rmarkdown::render('comparison_of_donor_characteristics.Rmd', clean=TRUE,output_format='pdf_document',output_file='../results/comparison_of_donor_characteristics.pdf')" | R --slave
 ```
 
 TODO:
--UK -> ENG
-
--normalise by population /100 000 or /10 000 inhabitants
 
 -Katja will send new numbers which take into account the prescreening policy
 
--Johanna will get current Finnish data
 
 
-Produce some example data from Finnish donation data.
+# Produce some example data from Finnish donation data.
 
-```{r}
+```{r , eval=FALSE}
 file <- "../results/DonorSummariesFin.xlsx"
 
 if (!file.exists(file)) {
@@ -47,9 +45,9 @@ if (!file.exists(file)) {
       Sex = last(gender),
       AgeGroup = last(age.group),
       Hb = Hb * 0.01551 * 4, # mmol/l conversion
-      #MeanHb = mean(Hb,na.rm = TRUE), #these need to count 
+      #MeanHb = mean(Hb,na.rm = TRUE), #others have counted these by donation so we will do the same 
       #SdHb = sd(Hb,na.rm = TRUE) # 
-    ) #%>% 
+    ) 
     
   
   per_donor <- per_donor %>% 
@@ -107,31 +105,44 @@ if (!file.exists(file)) {
 ```
 
 
+# Real data from all countries
 After collecting xls from different countries read them in.
 
 
 ```{r}
 
-datafile <- "../data/Iron review donor summaries 4th version DE NL UK.xlsx"
-
+#datafile <- "../data/Iron review donor summaries 4th version DE NL UK.xlsx"
+datafile <- "../data/Iron review donor summaries 4th version DE NL UK FI_.xlsx"
 #coltype <- c("ordered","factor","ordered","integer","numeric","integer","numeric","numeric")
 
-fin<- read_excel(file) %>% mutate(Country="FIN")
-fin <- fin %>% mutate(
-  `Age Group` = case_when(
-    `Age Group` == "[18,25]" ~ "18-25", 
-    `Age Group` == "(25,35]" ~ "26-35",
-    `Age Group` == "(35,45]" ~ "36-45",
-    `Age Group` == "(45,55]" ~ "46-55",
-    `Age Group` == "(55,65]" ~ "56-65",
-    `Age Group` == "(65,82]" ~ "66-70",
-  )
-) %>% 
+# fin<- read_excel(file) %>% mutate(Country="FIN")
+# fin <- fin %>% mutate(
+#   `Age Group` = case_when(
+#     `Age Group` == "[18,25]" ~ "18-25", 
+#     `Age Group` == "(25,35]" ~ "26-35",
+#     `Age Group` == "(35,45]" ~ "36-45",
+#     `Age Group` == "(45,55]" ~ "46-55",
+#     `Age Group` == "(55,65]" ~ "56-65",
+#     `Age Group` == "(65,82]" ~ "66-70",
+#   )
+# ) %>% 
+fi<- read_excel(datafile,
+                sheet = "FI 2021", 
+                range = "A4:H28",
+                col_names = TRUE,
+                na="NA"
+                ) %>% 
   mutate(
     Country="FI",
-    `Percentage Of LowHb` = `Percentage Of LowHb` *100
-    )
-
+#    `Percentage Of LowHb` = `Percentage Of LowHb` *100
+    ) %>% 
+  mutate(
+    `Count Of Donations` = `Count Of Donations` / 5.45e+6 * 10000,  
+    `Count Of Donors` = `Count Of Donors`  / 5.45e+6 * 10000,
+    MeanHb = MeanHb * 0.01551 * 4,
+    SdHb = SdHb * 0.01551 * 4
+  )
+colnames(fi)[grep(pattern = "New",x = colnames(fi))] <- "New_Repeat" 
 
 
 nl<- read_excel(datafile,
@@ -140,10 +151,17 @@ nl<- read_excel(datafile,
                 col_names = TRUE
                 ) %>% 
   mutate(Country="NL") 
+
 nl[18,4] <- NA
 nl[24,4] <- NA
 nl$`Count Of Donations` <- as.integer(nl$`Count Of Donations`)
 colnames(nl)[grep(pattern = "New",x = colnames(nl))] <- "New_Repeat" 
+
+nl <- nl %>%   mutate(
+    `Count Of Donations` = `Count Of Donations` / 17e+6 * 10000,  
+    `Count Of Donors` = `Count Of Donors`  / 17e+6 * 10000
+  ) 
+
 
 dk<- read_excel(datafile,
                 sheet = "DK 2021",
@@ -151,22 +169,35 @@ dk<- read_excel(datafile,
                 col_names = TRUE
                 ) %>% 
   mutate(Country="DK")
+
 dk[18,4] <- NA
 dk[24,4] <- NA
 dk$`Count Of Donations` <- as.integer(dk$`Count Of Donations`)
 colnames(dk)[grep(pattern = "New",x = colnames(dk))] <- "New_Repeat" 
+
+dk <- dk %>% 
+  mutate(
+    `Count Of Donations` = `Count Of Donations` / 5.85e+6 * 10000,  
+    `Count Of Donors` = `Count Of Donors`  / 5.85e+6 * 10000
+  )
 
 uk<- read_excel(datafile,
                 sheet = "UK 2021",
                 range = "A4:H28",
                 col_names = TRUE
                 ) %>% 
-  mutate(Country="UK")
+  mutate(Country="ENG") 
+
 uk$`Count Of Donations` <- as.integer(uk$`Count Of Donations`)
 colnames(uk)[grep(pattern = "New",x = colnames(uk))] <- "New_Repeat" 
 
+uk <- uk %>% 
+  mutate(
+    `Count Of Donations` = `Count Of Donations` / 56.55e+6 * 10000,  
+    `Count Of Donors` = `Count Of Donors`  / 56.55e+6 * 10000
+  )
 
-data <- bind_rows(nl,dk,uk,fin) %>% 
+data <- bind_rows(nl,dk,uk,fi) %>% 
   mutate(Sex=as.factor(Sex),
          Country=as.factor(Country),
          New_Repeat = as.factor(New_Repeat),
@@ -178,18 +209,29 @@ summary(data)
 ```
 ```{r}
 dodge_width <- 0.5
+diamond_size <- 3.5
+cols <- c(
+  "NL" =  "#FF9B00", 
+  "DK" = "#DA291C",
+  "ENG" =  "#012169",
+  "FI" =  "#228b22"
+  )
+# scale_color_manual(values = c("setosa" = "purple",
+#                                 "versicolor="orange",
+#                                 "virginica"="steelblue"))
 ```
 
 
-# New
+# New donors
 
 ```{r}
 new <- data %>% filter(New_Repeat == 'New donor')
 p1 <- ggplot(new,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country))
 p1 <- p1 + geom_col(position = "dodge")
 p1 <- p1 + facet_grid(.~Sex)
-p1 <- p1 + xlab("") + ylab("Count of donors")
+p1 <- p1 + xlab("") + ylab("Count of donors / 10k inhabitants")
 p1 <- p1 + theme(legend.position="none")
+p1 <- p1 + scale_fill_manual(values=cols)
 p1
 ggsave(filename = "../results/countdonor.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 
@@ -199,8 +241,10 @@ ggsave(filename = "../results/countdonor.pdf", dpi = 600,width =  180, height = 
 p2 <- ggplot(new,aes(x=`Age Group`,y=`Count Of Donations`,fill=Country))
 p2 <- p2 + geom_col(position = "dodge")
 p2 <- p2 + facet_grid(.~Sex)
-p2 <- p2 + xlab("") + ylab("Count of donations")
+p2 <- p2 + xlab("") + ylab("Count of donations / 10k inhabitants")
 p2 <- p2 + theme(legend.position="none")
+p2 <- p2 + scale_fill_manual(values=cols)
+
 p2
 ggsave(filename = "../results/countdonations.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 
@@ -209,10 +253,12 @@ ggsave(filename = "../results/countdonations.pdf", dpi = 600,width =  180, heigh
 
 ```{r}
 p3 <- ggplot(new,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country))
-p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),shape="diamond",size=3)
+p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),shape="diamond",size=diamond_size)
 p3 <- p3 + facet_grid(.~Sex)
 p3 <- p3 + xlab("") + ylab("Percentage of low Hb")
 p3 <- p3 + theme(legend.position="none")
+p3 <- p3 + scale_color_manual(values=cols)
+
 ggsave(filename = "../results/propdef.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 p3
 ```
@@ -222,10 +268,20 @@ p3
 
 ```{r}
 p4 <- ggplot(new,aes(x=`Age Group`,y=MeanHb,fill=Country))
-p4 <- p4 + geom_pointrange(aes(x=`Age Group`,y=MeanHb, ymin=MeanHb-SdHb,ymax=MeanHb+SdHb,color=Country),position=position_dodge(width = 1))
+p4 <- p4 + geom_pointrange(
+  aes(
+    x=`Age Group`,
+    y=MeanHb, 
+    ymin=MeanHb-SdHb,
+    ymax=MeanHb+SdHb,
+    color=Country)
+  ,position=position_dodge(width = dodge_width)
+  )
 p4 <- p4 + facet_grid(.~Sex)
 p4 <- p4 + xlab("Age group") + ylab("Average Hb")
 p4 <- p4 + theme(legend.position="bottom")
+p4 <- p4 + scale_color_manual(values=cols)
+p4 <- p4 + guides(fill="none")
 p4
 ggsave(filename = "../results/meanhb.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 ```
@@ -246,15 +302,16 @@ px <- ggarrange(p1,
 ggsave(px,filename = "../results/allfour_new.pdf", dpi = 600,width =  180, height = 400,units = "mm")
 ```
 
-# Repeat
+# Repeat donors
 
 ```{r}
 rep <- data %>% filter(New_Repeat == 'Repeat donor')
 p1 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country))
 p1 <- p1 + geom_col(position = "dodge")
 p1 <- p1 + facet_grid(.~Sex)
-p1 <- p1 + xlab("") + ylab("Count of donors")
+p1 <- p1 + xlab("") + ylab("Count of donors / 10k inhabitants")
 p1 <- p1 + theme(legend.position="none")
+p1 <- p1 + scale_fill_manual(values=cols)
 p1
 ggsave(filename = "../results/countdonor.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 
@@ -264,8 +321,9 @@ ggsave(filename = "../results/countdonor.pdf", dpi = 600,width =  180, height = 
 p2 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donations`,fill=Country))
 p2 <- p2 + geom_col(position = "dodge")
 p2 <- p2 + facet_grid(.~Sex)
-p2 <- p2 + xlab("") + ylab("Count of donations")
+p2 <- p2 + xlab("") + ylab("Count of donations / 10k inhabitants")
 p2 <- p2 + theme(legend.position="none")
+p2 <- p2 + scale_fill_manual(values=cols)
 p2
 ggsave(filename = "../results/countdonations.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 
@@ -274,10 +332,11 @@ ggsave(filename = "../results/countdonations.pdf", dpi = 600,width =  180, heigh
 
 ```{r}
 p3 <- ggplot(rep,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country))
-p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),shape="diamond",size=3)
+p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),shape="diamond",size=diamond_size)
 p3 <- p3 + facet_grid(.~Sex)
 p3 <- p3 + xlab("") + ylab("Percentage of low Hb")
 p3 <- p3 + theme(legend.position="none")
+p3 <- p3 + scale_color_manual(values=cols)
 ggsave(filename = "../results/propdef.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 p3
 ```
@@ -291,6 +350,8 @@ p4 <- p4 + geom_pointrange(aes(x=`Age Group`,y=MeanHb, ymin=MeanHb-SdHb,ymax=Mea
 p4 <- p4 + facet_grid(.~Sex)
 p4 <- p4 + xlab("Age group") + ylab("Average Hb")
 p4 <- p4 + theme(legend.position="bottom")
+p4 <- p4 + scale_color_manual(values=cols)
+p4 <- p4 + guides(fill="none")
 p4
 ggsave(filename = "../results/meanhb.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 ```
