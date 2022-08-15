@@ -16,6 +16,7 @@ library(ggpubr)
 TODO:
 
 -Katja will send new numbers which take into account the prescreening policy
+-save each plot individually with the color legend and remove extra color legends from the join plots
 
 
 
