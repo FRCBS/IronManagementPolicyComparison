@@ -9,7 +9,6 @@ library(tidyverse)
 library(WriteXLS)
 library(readxl)
 library(ggpubr)
-library(ggpattern)
 
 #echo "rmarkdown::render('comparison_of_donor_characteristics.Rmd', clean=TRUE,output_format='pdf_document',output_file='../results/comparison_of_donor_characteristics.pdf')" | R --slave
 ```
