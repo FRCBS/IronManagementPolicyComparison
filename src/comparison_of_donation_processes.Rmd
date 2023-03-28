@@ -1,0 +1,116 @@
+---
+title: "Compare national donation workflows for iron policy comparison"
+author: "Mikko Arvas"
+date: "`r Sys.time()`"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(DiagrammeR)
+library(DiagrammeRsvg)
+library(rsvg)
+
+#echo "rmarkdown::render('comparison_of_donation_processes.Rmd', clean=TRUE,output_format='pdf_document',output_file='../results/comparison_of_donation_processes.pdf')" | R --slave
+```
+
+
+```{r}
+processc <- DiagrammeR::grViz("digraph {
+  graph [layout = dot, rankdir = TB]
+  
+  
+  #UK
+  node [shape = box,color ='#012169',penwidth = 3]; 
+  node [label='Predonation\nquestionaire'];preform_uk;
+  node [label='Predonation\nHb'];prehb_uk;
+  node [label='Donation'];don_uk;
+  node [shape = diamond]; 
+  
+  preform_uk -> prehb_uk -> don_uk 
+  
+  
+  #FI
+  node [shape = box,color ='#228b22']; 
+  node [label='Predonation\nquestionaire'];preform_fi;
+  node [label='Predonation\nHb'];prehb_fi;
+  node [label='Donation'];don_fi;
+  node [shape = diamond]; 
+  node [label='Risk group\ndonor?'];risk_fi;
+  node [shape = box]; 
+  node [label='Iron\nsupplementation'];iron_fi;
+
+  preform_fi -> prehb_fi -> don_fi -> risk_fi -> iron_fi
+  
+  
+  #NL
+  node [shape = box,color ='#FF9B00']; 
+  node [label='Predonation\nquestionaire'];preform_nl;
+  node [shape = diamond]; 
+  node [label='First time\ndonor?'];first_nl;
+  node [shape = box]; 
+  node [label='Inital Hb\nand Fer'];inithbfer_nl;
+  node [label='Predonation\nHb'];prehb_nl;
+  node [label='Donation'];don_nl;
+  node [label='Postdonation\nferritin'];postfer_nl;
+  node [shape = diamond]; 
+  node [label='1st of 5th\ndonation?'];forf_nl;
+  
+  preform_nl -> first_nl
+  first_nl -> inithbfer_nl [label='Yes']
+  inithbfer_nl -> prehb_nl
+  first_nl -> prehb_nl [label='No']
+  prehb_nl -> don_nl 
+  don_nl -> forf_nl
+  forf_nl -> postfer_nl [label='Yes']
+  
+  #DK
+  node [shape = box,color ='#DA291C']; 
+  node [label='Predonation\nquestionaire'];preform_dk;
+  node [shape = diamond]; 
+  node [label='First time\nfemale\ndonor?'];first_dk;
+  node [shape = box]; 
+  node [label='Inital Hb\nand Fer'];inithbfer_dk;
+  node [label='Predonation\nHb'];prehb_dk;
+  node [shape = diamond];
+  node [label='Hb low?'];hblow_dk;
+  node [shape = box]; 
+  node [label='Donation'];don_dk;
+  node [label='Postdonation\nferritin'];postfer_dk;
+  node [label='Iron\nsupplementation'];iron_dk;
+  node [shape = diamond]; 
+  node [label='Ferritin\nlow?'];ferlow_dk;
+    
+  preform_dk -> first_dk
+  first_dk -> inithbfer_dk [label='Yes']
+  inithbfer_dk -> prehb_dk
+  first_dk -> prehb_dk [label='No']
+  prehb_dk -> hblow_dk
+  hblow_dk -> postfer_dk [label='Yes']
+  hblow_dk -> don_dk [label='No']
+  postfer_dk -> ferlow_dk 
+  ferlow_dk -> iron_dk [label='Yes']
+  
+  { rank = same; don_fi; don_nl; don_dk; don_uk  }
+  { rank = same; prehb_fi; prehb_nl; prehb_dk; prehb_uk  }
+  { rank = same; risk_fi; forf_nl;   }
+  }",
+  height = 700
+  )
+
+
+processc
+```
+
+
+```{r}
+processc %>% export_svg %>%
+charToRaw %>%
+rsvg_pdf("iron_process_comp.pdf",width=700,height=1000)
+```
+
+
+```{r}
+processc %>% export_svg %>%
+charToRaw %>%
+rsvg_png("iron_process_comp.png",width=700,height=1000)
+```
