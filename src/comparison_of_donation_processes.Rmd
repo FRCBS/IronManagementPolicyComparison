@@ -21,7 +21,7 @@ processc <- DiagrammeR::grViz("digraph {
   
   #UK
   node [shape = box,color ='#012169',penwidth = 3]; 
-  node [label='Predonation\nquestionaire'];preform_uk;
+  node [label='Donor health\nquestionnaire'];preform_uk;
   node [label='Predonation\nHb'];prehb_uk;
   node [label='Donation'];don_uk;
   node [shape = diamond]; 
@@ -31,7 +31,7 @@ processc <- DiagrammeR::grViz("digraph {
   
   #FI
   node [shape = box,color ='#228b22']; 
-  node [label='Predonation\nquestionaire'];preform_fi;
+  node [label='Donor health\nquestionnaire'];preform_fi;
   node [label='Predonation\nHb'];prehb_fi;
   node [label='Donation'];don_fi;
   node [shape = diamond]; 
@@ -44,16 +44,16 @@ processc <- DiagrammeR::grViz("digraph {
   
   #NL
   node [shape = box,color ='#FF9B00']; 
-  node [label='Predonation\nquestionaire'];preform_nl;
+  node [label='Donor health\nquestionnaire'];preform_nl;
   node [shape = diamond]; 
   node [label='First time\ndonor?'];first_nl;
   node [shape = box]; 
-  node [label='Inital Hb\nand Fer'];inithbfer_nl;
+  node [label='Initial Hb\nand Fer'];inithbfer_nl;
   node [label='Predonation\nHb'];prehb_nl;
   node [label='Donation'];don_nl;
   node [label='Postdonation\nferritin'];postfer_nl;
   node [shape = diamond]; 
-  node [label='1st of 5th\ndonation?'];forf_nl;
+  node [label='1st or 5th\ndonation?'];forf_nl;
   
   preform_nl -> first_nl
   first_nl -> inithbfer_nl [label='Yes']
@@ -65,11 +65,11 @@ processc <- DiagrammeR::grViz("digraph {
   
   #DK
   node [shape = box,color ='#DA291C']; 
-  node [label='Predonation\nquestionaire'];preform_dk;
+  node [label='Donor health\nquestionnaire'];preform_dk;
   node [shape = diamond]; 
   node [label='First time\nfemale\ndonor?'];first_dk;
   node [shape = box]; 
-  node [label='Inital Hb\nand Fer'];inithbfer_dk;
+  node [label='Initial Hb\nand Fer'];inithbfer_dk;
   node [label='Predonation\nHb'];prehb_dk;
   node [shape = diamond];
   node [label='Hb low?'];hblow_dk;
