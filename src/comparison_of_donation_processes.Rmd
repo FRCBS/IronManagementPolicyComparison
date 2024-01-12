@@ -22,12 +22,16 @@ processc <- DiagrammeR::grViz("digraph {
   #UK
   node [shape = box,color ='#012169',penwidth = 3]; 
   node [label='Donor health\nquestionnaire'];preform_uk;
+  node [label='Predonation\ncopper sulfate'];copper_uk;
   node [label='Predonation\nHb'];prehb_uk;
   node [label='Donation'];don_uk;
   node [shape = diamond]; 
   
-  preform_uk -> prehb_uk -> don_uk 
-  
+  preform_uk -> copper_uk
+  copper_uk -> prehb_uk [label='Fail'] 
+  prehb_uk -> don_uk [label='Pass']
+  copper_uk -> don_uk [label='Pass']
+
   
   #FI
   node [shape = box,color ='#228b22']; 
@@ -39,8 +43,10 @@ processc <- DiagrammeR::grViz("digraph {
   node [shape = box]; 
   node [label='Iron\nsupplementation'];iron_fi;
 
-  preform_fi -> prehb_fi -> don_fi -> risk_fi -> iron_fi
-  
+  preform_fi -> prehb_fi
+  prehb_fi -> don_fi
+  don_fi -> risk_fi
+  risk_fi -> iron_fi [label='Yes']
   
   #NL
   node [shape = box,color ='#FF9B00']; 
@@ -72,7 +78,6 @@ processc <- DiagrammeR::grViz("digraph {
   node [label='Initial Hb\nand Fer'];inithbfer_dk;
   node [label='Predonation\nHb'];prehb_dk;
   node [shape = diamond];
-  node [label='Hb low?'];hblow_dk;
   node [shape = box]; 
   node [label='Donation'];don_dk;
   node [label='Postdonation\nferritin'];postfer_dk;
@@ -84,9 +89,8 @@ processc <- DiagrammeR::grViz("digraph {
   first_dk -> inithbfer_dk [label='Yes']
   inithbfer_dk -> prehb_dk
   first_dk -> prehb_dk [label='No']
-  prehb_dk -> hblow_dk
-  hblow_dk -> postfer_dk [label='Yes']
-  hblow_dk -> don_dk [label='No']
+  prehb_dk -> postfer_dk [label='Fail']
+  prehb_dk -> don_dk [label='Pass']
   postfer_dk -> ferlow_dk 
   ferlow_dk -> iron_dk [label='Yes']
   
