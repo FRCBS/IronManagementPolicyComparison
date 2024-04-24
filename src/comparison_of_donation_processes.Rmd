@@ -77,7 +77,7 @@ processc <- DiagrammeR::grViz("digraph {
   node [shape = box]; 
   node [label='First time\ndonor?'];first_dk;
   node [shape = box]; 
-  node [label='Initial Hb\nand Fer'];inithbfer_dk;
+  node [label='Initial Hb\n(and Fer for women)'];inithbfer_dk;
   node [label='Predonation Hb'];prehb_dk;
   node [shape = box];
   node [shape = box]; 
@@ -87,7 +87,7 @@ processc <- DiagrammeR::grViz("digraph {
   node [shape = box];
   node [label='Postdonation\nferritin'];postfer_dk;
   node [label='Next donation'];nextdon_dk;
-  node [label=' Iron supplementation (as GP) '];iron_dk;
+  node [label=' Iron supplementation '];iron_dk;
   node [shape = box]; 
   node [label='Ferritin low?'];ferlow_dk;
     
