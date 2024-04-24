@@ -23,9 +23,9 @@ processc <- DiagrammeR::grViz("digraph {
   node [shape = box,color ='#012169',penwidth = 3]; 
   node [label='Donor health\nquestionnaire'];preform_uk;
   node [label='Predonation\ncopper sulfate'];copper_uk;
-  node [label='Predonation\nHb'];prehb_uk;
+  node [label='Predonation Hb'];prehb_uk;
   node [label='Donation'];don_uk;
-  node [shape = diamond]; 
+  node [shape = box]; 
   
   preform_uk -> copper_uk
   copper_uk -> prehb_uk [label='Fail'] 
@@ -36,67 +36,79 @@ processc <- DiagrammeR::grViz("digraph {
   #FI
   node [shape = box,color ='#228b22']; 
   node [label='Donor health\nquestionnaire'];preform_fi;
-  node [label='Predonation\nHb'];prehb_fi;
+  node [label='Predonation Hb'];prehb_fi;
   node [label='Donation'];don_fi;
-  node [shape = diamond]; 
+  node [shape = box]; 
   node [label='Risk group\ndonor?'];risk_fi;
   node [shape = box]; 
   node [label='Iron\nsupplementation'];iron_fi;
 
   preform_fi -> prehb_fi
-  prehb_fi -> don_fi
+  prehb_fi -> don_fi [label='Pass']
   don_fi -> risk_fi
   risk_fi -> iron_fi [label='Yes']
   
   #NL
   node [shape = box,color ='#FF9B00']; 
   node [label='Donor health\nquestionnaire'];preform_nl;
-  node [shape = diamond]; 
+  node [shape = box]; 
   node [label='First time\ndonor?'];first_nl;
   node [shape = box]; 
   node [label='Initial Hb\nand Fer'];inithbfer_nl;
-  node [label='Predonation\nHb'];prehb_nl;
+  node [shape = box,color ='#FF9B00']; 
+  node [label='Predonation Hb'];prehb_nl;
+  node [shape = box];
   node [label='Donation'];don_nl;
   node [label='Postdonation\nferritin'];postfer_nl;
-  node [shape = diamond]; 
+  node [shape = box]; 
   node [label='1st or 5th\ndonation?'];forf_nl;
   
   preform_nl -> first_nl
   first_nl -> inithbfer_nl [label='Yes']
   inithbfer_nl -> prehb_nl
   first_nl -> prehb_nl [label='No']
-  prehb_nl -> don_nl 
+  prehb_nl -> don_nl [label='Pass']
   don_nl -> forf_nl
   forf_nl -> postfer_nl [label='Yes']
   
   #DK
   node [shape = box,color ='#DA291C']; 
   node [label='Donor health\nquestionnaire'];preform_dk;
-  node [shape = diamond]; 
-  node [label='First time\nfemale\ndonor?'];first_dk;
+  node [shape = box]; 
+  node [label='First time\ndonor?'];first_dk;
   node [shape = box]; 
   node [label='Initial Hb\nand Fer'];inithbfer_dk;
-  node [label='Predonation\nHb'];prehb_dk;
-  node [shape = diamond];
+  node [label='Predonation Hb'];prehb_dk;
+  node [shape = box];
   node [shape = box]; 
   node [label='Donation'];don_dk;
+  node [shape = box]; 
+  node [label='Analysis of\npredonation Hb'];posthb_dk;
+  node [shape = box];
   node [label='Postdonation\nferritin'];postfer_dk;
-  node [label='Iron\nsupplementation'];iron_dk;
-  node [shape = diamond]; 
-  node [label='Ferritin\nlow?'];ferlow_dk;
+  node [label='Next donation'];nextdon_dk;
+  node [label=' Iron supplementation (as GP) '];iron_dk;
+  node [shape = box]; 
+  node [label='Ferritin low?'];ferlow_dk;
     
   preform_dk -> first_dk
   first_dk -> inithbfer_dk [label='Yes']
-  inithbfer_dk -> prehb_dk
-  first_dk -> prehb_dk [label='No']
-  prehb_dk -> postfer_dk [label='Fail']
-  prehb_dk -> don_dk [label='Pass']
+  inithbfer_dk -> don_dk [label='Pass']
+  don_dk -> posthb_dk
+  posthb_dk -> postfer_dk [label='Fail']
+  posthb_dk -> nextdon_dk [label='Pass']
+    first_dk -> prehb_dk [label='No']
+  prehb_dk -> don_dk
+  prehb_dk -> posthb_dk [color = 'grey']
   postfer_dk -> ferlow_dk 
   ferlow_dk -> iron_dk [label='Yes']
   
   { rank = same; don_fi; don_nl; don_dk; don_uk  }
   { rank = same; prehb_fi; prehb_nl; prehb_dk; prehb_uk  }
   { rank = same; risk_fi; forf_nl;   }
+  { rank = same; first_dk; first_nl;   }
+  { rank = same; preform_dk; preform_nl; preform_fi; preform_uk   }
+  { rank = same; inithbfer_dk; inithbfer_nl;   }
   }",
   height = 700
   )
