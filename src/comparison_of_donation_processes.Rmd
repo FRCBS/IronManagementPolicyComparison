@@ -20,49 +20,58 @@ processc <- DiagrammeR::grViz("digraph {
   
   
   #UK
-  node [shape = box,color ='#012169',penwidth = 3]; 
+  node [shape = box, color='#FFFFFF']
+  node [label = 'ENG', fontsize='18'];country_uk
+  node [shape = box,color ='#7570B3',penwidth = 6,fontsize='12']; # original color #012169 -> changed to #7570B3 
   node [label='Donor health\nquestionnaire'];preform_uk;
   node [label='Predonation\ncopper sulfate'];copper_uk;
   node [label='Predonation Hb'];prehb_uk;
   node [label='Donation'];don_uk;
-  node [shape = box]; 
+  #node [shape = box]; 
   
-  preform_uk -> copper_uk
+  country_uk -> preform_uk [color = '#FFFFFF'] 
+  preform_uk -> copper_uk 
   copper_uk -> prehb_uk [label='Fail'] 
   prehb_uk -> don_uk [label='Pass']
   copper_uk -> don_uk [label='Pass']
 
   
   #FI
-  node [shape = box,color ='#228b22']; 
+  node [shape = box, color='#FFFFFF']
+  node [label = 'FI', fontsize='18'];country_fi
+  node [shape = box,color ='#1B9E77',fontsize='12'];  # original color #228b22 -> changed to #1B9E77 
   node [label='Donor health\nquestionnaire'];preform_fi;
   node [label='Predonation Hb'];prehb_fi;
   node [label='Donation'];don_fi;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='Risk group\ndonor?'];risk_fi;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='Iron\nsupplementation'];iron_fi;
 
+  country_fi -> preform_fi [color = '#FFFFFF'] 
   preform_fi -> prehb_fi
   prehb_fi -> don_fi [label='Pass']
   don_fi -> risk_fi
   risk_fi -> iron_fi [label='Yes']
   
   #NL
-  node [shape = box,color ='#FF9B00']; 
+  node [shape = box, color='#FFFFFF']
+  node [label = 'NL', fontsize='18'];country_nl
+  node [shape = box,color ='#D95F02',fontsize='12']; # original color #FF9B00 -> changed to #D95F02
   node [label='Donor health\nquestionnaire'];preform_nl;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='First time\ndonor?'];first_nl;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='Initial Hb\nand Fer'];inithbfer_nl;
-  node [shape = box,color ='#FF9B00']; 
+  #node [shape = box,color ='#FF9B00']; 
   node [label='Predonation Hb'];prehb_nl;
-  node [shape = box];
+  #node [shape = box];
   node [label='Donation'];don_nl;
   node [label='Postdonation\nferritin'];postfer_nl;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='1st or 5th\ndonation?'];forf_nl;
   
+  country_nl -> preform_nl [color = '#FFFFFF'] 
   preform_nl -> first_nl
   first_nl -> inithbfer_nl [label='Yes']
   inithbfer_nl -> prehb_nl
@@ -72,25 +81,28 @@ processc <- DiagrammeR::grViz("digraph {
   forf_nl -> postfer_nl [label='Yes']
   
   #DK
-  node [shape = box,color ='#DA291C']; 
+  node [shape = box, color='#FFFFFF']
+  node [label = 'DK', fontsize='18'];country_dk
+  node [shape = box,color ='#E7298A',fontsize='12']; # original color #DA291C -> changed to #E7298A
   node [label='Donor health\nquestionnaire'];preform_dk;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='First time\ndonor?'];first_dk;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='Initial Hb\n(and Fer for women)'];inithbfer_dk;
   node [label='Predonation Hb'];prehb_dk;
-  node [shape = box];
-  node [shape = box]; 
+  #node [shape = box];
+  #node [shape = box]; 
   node [label='Donation'];don_dk;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='Analysis of\npredonation Hb'];posthb_dk;
-  node [shape = box];
+  #node [shape = box];
   node [label='Postdonation\nferritin'];postfer_dk;
   node [label='Next donation'];nextdon_dk;
   node [label=' Iron supplementation '];iron_dk;
-  node [shape = box]; 
+  #node [shape = box]; 
   node [label='Ferritin low?'];ferlow_dk;
     
+  country_dk -> preform_dk [color = '#FFFFFF'] 
   preform_dk -> first_dk
   first_dk -> inithbfer_dk [label='Yes']
   inithbfer_dk -> don_dk [label='Pass']

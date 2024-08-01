@@ -128,12 +128,20 @@ summary(data)
 
 dodge_width <- 0.5
 diamond_size <- 3.5
+#Better for color blind
 cols <- c(
-  "NL" =  "#FF9B00", 
+  "NL" =  "#D95F02", 
   "DK" = "#DA291C",
-  "ENG" =  "#012169",
-  "FI" =  "#228b22"
+  "ENG" =  "#7570B3",
+  "FI" =  "#E7298A"
   )
+#Real flag colors
+# cols <- c(
+#   "NL" =  "#FF9B00", 
+#   "DK" = "#DA291C",
+#   "ENG" =  "#012169",
+#   "FI" =  "#228b22"
+#   )
 # scale_color_manual(values = c("setosa" = "purple",
 #                                 "versicolor="orange",
 #                                 "virginica"="steelblue"))
