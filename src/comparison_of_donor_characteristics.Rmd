@@ -133,7 +133,17 @@ cols <- c(
   "NL" =  "#D95F02", 
   "DK" = "#DA291C",
   "ENG" =  "#7570B3",
-  "FI" =  "#E7298A"
+  "FI" =  "#1B9E77"
+  )
+
+shapes <- c(22,25,23,24)
+
+
+colsborder <- c(
+  "NL" =  "#D95F02", 
+  "DK" = "#FFFFFF",
+  "ENG" =  "#FFFFFF",
+  "FI" =  "#FFFFFF"
   )
 #Real flag colors
 # cols <- c(
@@ -142,9 +152,6 @@ cols <- c(
 #   "ENG" =  "#012169",
 #   "FI" =  "#228b22"
 #   )
-# scale_color_manual(values = c("setosa" = "purple",
-#                                 "versicolor="orange",
-#                                 "virginica"="steelblue"))
 ```
 
 
@@ -158,7 +165,7 @@ p1 <- p1 + facet_grid(.~Sex)
 p1 <- p1 + xlab("") + ylab("Count of donors / 10k inhabitants")
 p1 <- p1 + theme(legend.position="bottom")
 p1 <- p1 + scale_fill_manual(values=cols)  +
-  scale_color_manual(values=cols) +
+  scale_color_manual(values=colsborder) +
   scale_alpha_manual(values=c(1,0.5)) +
   guides(color="none", alpha="none") 
 
@@ -175,7 +182,7 @@ p2 <- p2 + facet_grid(.~Sex)
 p2 <- p2 + xlab("") + ylab("Count of donations / 10k inhabitants")
 p2 <- p2 + theme(legend.position="bottom")
 p2 <- p2 + scale_fill_manual(values=cols) +
-  scale_color_manual(values=cols) +
+  scale_color_manual(values=colsborder) +
   scale_alpha_manual(values=c(1,0.5)) +
   guides(color="none", alpha="none") 
 
@@ -187,14 +194,16 @@ ggsave(filename = "../results/figs/countdonation_news.pdf", dpi = 600,width =  1
 
 
 ```{r , warning=FALSE}
-p3 <- ggplot(new,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country,alpha=Pre_Attempt))
-p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),shape="diamond",size=diamond_size)
+p3 <- ggplot(new,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country,alpha=Pre_Attempt,shape=Country,fill=Country))
+p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),size=diamond_size)
 p3 <- p3 + facet_grid(.~Sex)
 p3 <- p3 + xlab("") + ylab("Percentage of low Hb")
 p3 <- p3 + theme(legend.position="bottom")
-p3 <- p3 + scale_color_manual(values=cols) +
+p3 <- p3 + scale_color_manual(values=colsborder) +
+  scale_fill_manual(values=cols) +
+  scale_shape_manual(values=shapes) +
   scale_alpha_manual(values=c(1,0.5)) +
-  guides(alpha="none") 
+  guides(alpha="none")
 
 
 ggsave(filename = "../results/figs/propdef_new.pdf", dpi = 600,width =  180, height = 100,units = "mm")
@@ -205,7 +214,7 @@ p3
 
 
 ```{r , warning=FALSE}
-p4 <- ggplot(new,aes(x=`Age Group`,y=MeanHb,fill=Country,alpha=Pre_Attempt))
+p4 <- ggplot(new,aes(x=`Age Group`,y=MeanHb,fill=Country,alpha=Pre_Attempt,shape=Country))
 p4 <- p4 + geom_pointrange(
   aes(
     x=`Age Group`,
@@ -216,12 +225,14 @@ p4 <- p4 + geom_pointrange(
   ,position=position_dodge(width = dodge_width)
 )
 p4 <- p4 + facet_grid(.~Sex)
-p4 <- p4 + xlab("Age group") + ylab("Average Hb")
+p4 <- p4 + xlab("Age group") + ylab("Average Hb (mmol/L)")
 p4 <- p4 + theme(legend.position="bottom")
 p4 <- p4 + scale_color_manual(values=cols)
 p4 <- p4 + guides(fill="none") +
   scale_alpha_manual(values=c(1,0.5)) +
-  guides(alpha="none") 
+  scale_fill_manual(values=cols) +
+  scale_shape_manual(values=shapes) +
+  guides(alpha="none")
 
 p4
 ggsave(filename = "../results/figs/meanhb_new.pdf", dpi = 600,width =  180, height = 100,units = "mm")
@@ -233,7 +244,6 @@ ggsave(filename = "../results/figs/meanhb_new.pdf", dpi = 600,width =  180, heig
 p1 <- p1 + theme(legend.position="none")
 p2 <- p2 + theme(legend.position="none")
 p3 <- p3 + theme(legend.position="none")
-#p4 <- p4 + theme(legend.position="none")
 
 px <- ggarrange(p1,
           p2,
@@ -253,7 +263,7 @@ ggsave(px,filename = "../results/figs/allfour_new.pdf", dpi = 600,width =  180, 
 ```{r , warning=FALSE}
 rep <- data %>% filter(New_Repeat == 'Repeat donor')
 p1 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country))
-p1 <- p1 + geom_col(position = "dodge")
+p1 <- p1 + geom_col(position = "dodge",color="#FFFFFF")
 p1 <- p1 + facet_grid(.~Sex)
 p1 <- p1 + xlab("") + ylab("Count of donors / 10k inhabitants")
 p1 <- p1 + theme(legend.position="bottom")
@@ -265,7 +275,7 @@ ggsave(filename = "../results/figs/countdonor_rep.pdf", dpi = 600,width =  180, 
 
 ```{r}
 p2 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donations`,fill=Country))
-p2 <- p2 + geom_col(position = "dodge")
+p2 <- p2 + geom_col(position = "dodge",color="#FFFFFF")
 p2 <- p2 + facet_grid(.~Sex)
 p2 <- p2 + xlab("") + ylab("Count of donations / 10k inhabitants")
 p2 <- p2 + theme(legend.position="bottom")
@@ -277,12 +287,17 @@ ggsave(filename = "../results/figs/countdonations_rep.pdf", dpi = 600,width =  1
 
 
 ```{r}
-p3 <- ggplot(rep,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country))
-p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),shape="diamond",size=diamond_size)
+p3 <- ggplot(rep,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country,alpha=Pre_Attempt,shape=Country,fill=Country))
+p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),size=diamond_size)
 p3 <- p3 + facet_grid(.~Sex)
 p3 <- p3 + xlab("") + ylab("Percentage of low Hb")
 p3 <- p3 + theme(legend.position="bottom")
-p3 <- p3 + scale_color_manual(values=cols)
+p3 <- p3 + scale_color_manual(values=colsborder) +
+  scale_fill_manual(values=cols) +
+  scale_shape_manual(values=shapes) +
+  scale_alpha_manual(values=c(1,0.5)) +
+  guides(alpha="none")
+
 ggsave(filename = "../results/figs/propdef_rep.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 p3
 ```
@@ -291,13 +306,17 @@ p3
 
 
 ```{r}
-p4 <- ggplot(rep,aes(x=`Age Group`,y=MeanHb,fill=Country))
+p4 <- ggplot(rep,aes(x=`Age Group`,y=MeanHb,fill=Country,shape=Country))
 p4 <- p4 + geom_pointrange(aes(x=`Age Group`,y=MeanHb, ymin=MeanHb-SdHb,ymax=MeanHb+SdHb,color=Country),position=position_dodge(width = 1))
 p4 <- p4 + facet_grid(.~Sex)
-p4 <- p4 + xlab("Age group") + ylab("Average Hb")
+p4 <- p4 + xlab("Age group") + ylab("Average Hb (mmol/L)")
 p4 <- p4 + theme(legend.position="bottom")
 p4 <- p4 + scale_color_manual(values=cols)
-p4 <- p4 + guides(fill="none")
+p4 <- p4 + guides(fill="none") +
+  scale_alpha_manual(values=c(1,0.5)) +
+  scale_fill_manual(values=cols) +
+  scale_shape_manual(values=shapes) +
+  guides(alpha="none")
 p4
 ggsave(filename = "../results/figs/meanhb_rep.pdf", dpi = 600,width =  180, height = 100,units = "mm")
 ```
