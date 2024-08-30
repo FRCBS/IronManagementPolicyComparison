@@ -110,7 +110,7 @@ processc <- DiagrammeR::grViz("digraph {
   posthb_dk -> postfer_dk [label='Fail']
   posthb_dk -> nextdon_dk [label='Pass']
     first_dk -> prehb_dk [label='No']
-  prehb_dk -> don_dk
+  prehb_dk -> don_dk [label='Pass']
   prehb_dk -> posthb_dk [color = 'grey']
   postfer_dk -> ferlow_dk 
   ferlow_dk -> iron_dk [label='Yes']
@@ -133,12 +133,18 @@ processc
 ```{r}
 processc %>% export_svg %>%
 charToRaw %>%
-rsvg_pdf("iron_process_comp.pdf",width=700,height=1000)
+rsvg_pdf("../results/figs/iron_process_comp.pdf",width=700,height=1000)
 ```
 
 
 ```{r}
 processc %>% export_svg %>%
 charToRaw %>%
-rsvg_png("iron_process_comp.png",width=700,height=1000)
+rsvg_png("../results/figs/iron_process_comp.png",width=700,height=1000)
+```
+
+```{r}
+processc %>% export_svg %>%
+charToRaw %>%
+rsvg_eps("../results/figs/iron_process_comp.eps",width=700,height=1000)
 ```

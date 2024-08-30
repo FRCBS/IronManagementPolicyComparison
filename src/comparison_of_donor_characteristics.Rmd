@@ -34,8 +34,8 @@ fi<- read_excel(datafile,
   mutate(
     `Count Of Donations` = `Count Of Donations` / 5.45e+6 * 10000,  
     `Count Of Donors` = `Count Of Donors`  / 5.45e+6 * 10000,
-    MeanHb = MeanHb * 0.01551 * 4,
-    SdHb = SdHb * 0.01551 * 4,
+    #MeanHb = MeanHb * 0.01551 * 4, #mmol/L conversion
+    #SdHb = SdHb * 0.01551 * 4,
     Pre_Attempt = "Attempt"
   )
 colnames(fi)[grep(pattern = "New",x = colnames(fi))] <- "New_Repeat" 
@@ -59,7 +59,9 @@ nl <- nl %>%
     New_Repeat = recode(
       New_Repeat,
       "Pre-donation screening" = "New donor"
-    )
+    ),
+    MeanHb = MeanHb / 0.01551 / 4, #g/L conversion
+    SdHb = SdHb / 0.01551 / 4
   )
 
 
@@ -92,7 +94,9 @@ colnames(dk)[grep(pattern = "New",x = colnames(dk))] <- "New_Repeat"
 dk <- dk %>% 
   mutate(
     `Count Of Donations` = `Count Of Donations` / 5.85e+6 * 10000,  
-    `Count Of Donors` = `Count Of Donors`  / 5.85e+6 * 10000
+    `Count Of Donors` = `Count Of Donors`  / 5.85e+6 * 10000,
+    MeanHb = MeanHb / 0.01551 / 4, #g/L conversion
+    SdHb = SdHb / 0.01551 / 4
   )
 
 # UK
@@ -110,12 +114,14 @@ colnames(uk)[grep(pattern = "New",x = colnames(uk))] <- "New_Repeat"
 uk <- uk %>% 
   mutate(
     `Count Of Donations` = `Count Of Donations` / 56.55e+6 * 10000,  
-    `Count Of Donors` = `Count Of Donors`  / 56.55e+6 * 10000
+    `Count Of Donors` = `Count Of Donors`  / 56.55e+6 * 10000,
+    MeanHb = MeanHb / 0.01551 / 4, #g/L conversion
+    SdHb = SdHb / 0.01551 / 4
   )
 
 data <- bind_rows(nl,dk,uk,fi) %>% 
   mutate(Sex=as.factor(Sex),
-         Country=as.factor(Country),
+         Country=factor(Country,levels=c("ENG","FI","NL","DK"), ordered = TRUE),
          New_Repeat = as.factor(New_Repeat),
          Pre_Attempt = as.factor(Pre_Attempt),
          `Age Group` = fct_relevel(as.ordered(`Age Group`),"18-25",after=0)
@@ -127,7 +133,7 @@ summary(data)
 ```{r}
 
 dodge_width <- 0.5
-diamond_size <- 3.5
+diamond_size <- 2
 #Better for color blind
 cols <- c(
   "NL" =  "#D95F02", 
@@ -138,13 +144,14 @@ cols <- c(
 
 shapes <- c(22,25,23,24)
 
+colsborder <- cols
 
-colsborder <- c(
-  "NL" =  "#D95F02", 
-  "DK" = "#FFFFFF",
-  "ENG" =  "#FFFFFF",
-  "FI" =  "#FFFFFF"
-  )
+# colsborder <- c(
+#   "NL" =  "#D95F02", 
+#   "DK" = "#FFFFFF",
+#   "ENG" =  "#FFFFFF",
+#   "FI" =  "#FFFFFF"
+#   )
 #Real flag colors
 # cols <- c(
 #   "NL" =  "#FF9B00", 
@@ -159,63 +166,87 @@ colsborder <- c(
 
 ```{r , warning=FALSE}
 new <- data %>% filter(New_Repeat == 'New donor')
-p1 <- ggplot(new,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country,color=Country,alpha=Pre_Attempt))
-p1 <- p1 + geom_col(position = "dodge")
-p1 <- p1 + facet_grid(.~Sex)
-p1 <- p1 + xlab("") + ylab("Count of donors / 10k inhabitants")
-p1 <- p1 + theme(legend.position="bottom")
-p1 <- p1 + scale_fill_manual(values=cols)  +
+p1n <- ggplot(new,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country,color=Country,alpha=Pre_Attempt))
+p1n <- p1n + geom_col(position = "dodge")
+p1n <- p1n + facet_grid(.~Sex)
+p1n <- p1n + xlab("") + ylab("Count of donors / 10k inhabitants")
+p1n <- p1n + theme(legend.position="bottom")
+p1n <- p1n + scale_fill_manual(values=cols)  +
   scale_color_manual(values=colsborder) +
   scale_alpha_manual(values=c(1,0.5)) +
-  guides(color="none", alpha="none") 
+  guides(color="none", alpha="none") +
+   theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
 
 
-p1
-ggsave(filename = "../results/figs/countdonor_new.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+p1n
+ggsave(filename = "../results/figs/countdonor_new.pdf", dpi = 600,width =  80, height = 80,units = "mm")
 
 ```
                      
 ```{r , warning=FALSE}
-p2 <- ggplot(new,aes(x=`Age Group`,y=`Count Of Donations`,fill=Country,color=Country,alpha=Pre_Attempt))
-p2 <- p2 + geom_col(position = "dodge")
-p2 <- p2 + facet_grid(.~Sex)
-p2 <- p2 + xlab("") + ylab("Count of donations / 10k inhabitants")
-p2 <- p2 + theme(legend.position="bottom")
-p2 <- p2 + scale_fill_manual(values=cols) +
+p2n <- ggplot(new,aes(x=`Age Group`,y=`Count Of Donations`,fill=Country,color=Country,alpha=Pre_Attempt))
+p2n <- p2n + geom_col(position = "dodge")
+p2n <- p2n + facet_grid(.~Sex)
+p2n <- p2n + xlab("") + ylab("Count of donations / 10k inhabitants")
+p2n <- p2n + theme(legend.position="bottom")
+p2n <- p2n + scale_fill_manual(values=cols) +
   scale_color_manual(values=colsborder) +
   scale_alpha_manual(values=c(1,0.5)) +
-  guides(color="none", alpha="none") 
+  guides(color="none", alpha="none")  +
+   theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
 
 
-p2
-ggsave(filename = "../results/figs/countdonation_news.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+p2n
+ggsave(filename = "../results/figs/countdonation_news.pdf", dpi = 600,width =  80, height = 80,units = "mm")
 
 ```
 
 
 ```{r , warning=FALSE}
-p3 <- ggplot(new,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country,alpha=Pre_Attempt,shape=Country,fill=Country))
-p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),size=diamond_size)
-p3 <- p3 + facet_grid(.~Sex)
-p3 <- p3 + xlab("") + ylab("Percentage of low Hb")
-p3 <- p3 + theme(legend.position="bottom")
-p3 <- p3 + scale_color_manual(values=colsborder) +
+p3n <- ggplot(new,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country,alpha=Pre_Attempt,shape=Country,fill=Country))
+p3n <- p3n + geom_point(position=position_dodge(width = dodge_width),size=diamond_size)
+p3n <- p3n + facet_grid(.~Sex)
+p3n <- p3n + xlab("") + ylab("Percentage of low Hb")
+p3n <- p3n + theme(legend.position="bottom")
+p3n <- p3n + scale_color_manual(values=colsborder) +
   scale_fill_manual(values=cols) +
   scale_shape_manual(values=shapes) +
   scale_alpha_manual(values=c(1,0.5)) +
-  guides(alpha="none")
+  guides(alpha="none") +
+   theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
 
 
-ggsave(filename = "../results/figs/propdef_new.pdf", dpi = 600,width =  180, height = 100,units = "mm")
-p3
+ggsave(filename = "../results/figs/propdef_new.pdf", dpi = 600,width =  80, height = 80,units = "mm")
+p3n
 ```
 
 
 
 
 ```{r , warning=FALSE}
-p4 <- ggplot(new,aes(x=`Age Group`,y=MeanHb,fill=Country,alpha=Pre_Attempt,shape=Country))
-p4 <- p4 + geom_pointrange(
+p4n <- ggplot(new,aes(x=`Age Group`,y=MeanHb,fill=Country,alpha=Pre_Attempt,shape=Country))
+p4n <- p4n + geom_pointrange(
   aes(
     x=`Age Group`,
     y=MeanHb, 
@@ -224,70 +255,105 @@ p4 <- p4 + geom_pointrange(
     color=Country)
   ,position=position_dodge(width = dodge_width)
 )
-p4 <- p4 + facet_grid(.~Sex)
-p4 <- p4 + xlab("Age group") + ylab("Average Hb (mmol/L)")
-p4 <- p4 + theme(legend.position="bottom")
-p4 <- p4 + scale_color_manual(values=cols)
-p4 <- p4 + guides(fill="none") +
+p4n <- p4n + facet_grid(.~Sex)
+p4n <- p4n + xlab("Age group") + ylab("Average Hb (g/L)")
+p4n <- p4n + theme(legend.position="bottom")
+p4n <- p4n + scale_color_manual(values=cols)
+p4n <- p4n + guides(fill="none") +
   scale_alpha_manual(values=c(1,0.5)) +
   scale_fill_manual(values=cols) +
   scale_shape_manual(values=shapes) +
-  guides(alpha="none")
+  guides(alpha="none") +
+   theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
 
-p4
-ggsave(filename = "../results/figs/meanhb_new.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+p4n
+ggsave(filename = "../results/figs/meanhb_new.pdf", dpi = 600,width =  80, height = 80,units = "mm")
 ```
 
 
 
 ```{r , warning=FALSE}
-p1 <- p1 + theme(legend.position="none")
-p2 <- p2 + theme(legend.position="none")
-p3 <- p3 + theme(legend.position="none")
+p1n <- p1n + theme(legend.position="none")
+p2n <- p2n + theme(legend.position="none")
+p3n <- p3n + theme(legend.position="none")
 
-px <- ggarrange(p1,
-          p2,
-          p3,
-          p4,
+pn <- ggarrange(p1n,
+          p2n,
+          p3n,
+          p4n,
           labels=c("A","B","C","D"),
           ncol=1,
           nrow=4)
 ```
 
 ```{r}
-ggsave(px,filename = "../results/figs/allfour_new.pdf", dpi = 600,width =  180, height = 400,units = "mm")
+ggsave(pn,filename = "../results/figs/allfour_new.pdf", dpi = 600,width =  80, height = 300,units = "mm")
+ggsave(pn,filename = "../results/figs/allfour_new.png", dpi = 600,width =  80, height = 300,units = "mm")
 ```
 
 # Repeat donors
 
 ```{r , warning=FALSE}
 rep <- data %>% filter(New_Repeat == 'Repeat donor')
-p1 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country))
-p1 <- p1 + geom_col(position = "dodge",color="#FFFFFF")
+p1 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country,color=Country,alpha=Pre_Attempt))
+#p1n <- ggplot(new,aes(x=`Age Group`,y=`Count Of Donors`,fill=Country,color=Country,alpha=Pre_Attempt))
+p1 <- p1 + geom_col(position = "dodge")
 p1 <- p1 + facet_grid(.~Sex)
 p1 <- p1 + xlab("") + ylab("Count of donors / 10k inhabitants")
 p1 <- p1 + theme(legend.position="bottom")
-p1 <- p1 + scale_fill_manual(values=cols) 
+p1 <- p1 + scale_fill_manual(values=cols) +
+  scale_color_manual(values=colsborder) +
+  scale_alpha_manual(values=c(1,0.5)) +
+  guides(color="none", alpha="none") +
+  theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
+
 p1
-ggsave(filename = "../results/figs/countdonor_rep.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+ggsave(filename = "../results/figs/countdonor_rep.pdf", dpi = 600,width =  80, height = 80,units = "mm")
 
 ```
 
 ```{r}
-p2 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donations`,fill=Country))
-p2 <- p2 + geom_col(position = "dodge",color="#FFFFFF")
+p2 <- ggplot(rep,aes(x=`Age Group`,y=`Count Of Donations`,fill=Country,color=Country,alpha=Pre_Attempt))
+p2 <- p2 + geom_col(position = "dodge")
 p2 <- p2 + facet_grid(.~Sex)
 p2 <- p2 + xlab("") + ylab("Count of donations / 10k inhabitants")
 p2 <- p2 + theme(legend.position="bottom")
-p2 <- p2 + scale_fill_manual(values=cols)
+p2 <- p2 + scale_fill_manual(values=cols) +
+  scale_color_manual(values=colsborder) +
+  scale_alpha_manual(values=c(1,0.5)) +
+  guides(color="none", alpha="none") +
+     theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
+
 p2
-ggsave(filename = "../results/figs/countdonations_rep.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+ggsave(filename = "../results/figs/countdonations_rep.pdf", dpi = 600,width =  80, height = 80,units = "mm")
 
 ```
 
 
 ```{r}
-p3 <- ggplot(rep,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country,alpha=Pre_Attempt,shape=Country,fill=Country))
+#p3 <- ggplot(rep,aes(x=`Age Group`,y=`Percentage Of LowHb`,color=Country,alpha=Pre_Attempt,shape=Country,fill=Country))
+p3 <- ggplot(rep,aes(x=`Age Group`,y=`Percentage Of LowHb`,alpha=Pre_Attempt,shape=Country,fill=Country,color=Country))
 p3 <- p3 + geom_point(position=position_dodge(width = dodge_width),size=diamond_size)
 p3 <- p3 + facet_grid(.~Sex)
 p3 <- p3 + xlab("") + ylab("Percentage of low Hb")
@@ -296,9 +362,18 @@ p3 <- p3 + scale_color_manual(values=colsborder) +
   scale_fill_manual(values=cols) +
   scale_shape_manual(values=shapes) +
   scale_alpha_manual(values=c(1,0.5)) +
-  guides(alpha="none")
+  guides(alpha="none") +
+     theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
 
-ggsave(filename = "../results/figs/propdef_rep.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+
+ggsave(filename = "../results/figs/propdef_rep.pdf", dpi = 600,width =  80, height = 80,units = "mm")
 p3
 ```
 
@@ -309,16 +384,25 @@ p3
 p4 <- ggplot(rep,aes(x=`Age Group`,y=MeanHb,fill=Country,shape=Country))
 p4 <- p4 + geom_pointrange(aes(x=`Age Group`,y=MeanHb, ymin=MeanHb-SdHb,ymax=MeanHb+SdHb,color=Country),position=position_dodge(width = 1))
 p4 <- p4 + facet_grid(.~Sex)
-p4 <- p4 + xlab("Age group") + ylab("Average Hb (mmol/L)")
+p4 <- p4 + xlab("Age group") + ylab("Average Hb (g/L)")
 p4 <- p4 + theme(legend.position="bottom")
 p4 <- p4 + scale_color_manual(values=cols)
 p4 <- p4 + guides(fill="none") +
   scale_alpha_manual(values=c(1,0.5)) +
   scale_fill_manual(values=cols) +
   scale_shape_manual(values=shapes) +
-  guides(alpha="none")
+  guides(alpha="none") +
+     theme(
+    legend.key.size = unit(.4, 'cm'),  # Change legend key size
+    legend.title = element_text(size = 8),  # Change legend title font size
+    legend.text = element_text(size = 8),  # Change legend text font size
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,size = 8),
+    axis.title.y = element_text(size = 8),
+    axis.title.x = element_text(size = 8)
+  )
+
 p4
-ggsave(filename = "../results/figs/meanhb_rep.pdf", dpi = 600,width =  180, height = 100,units = "mm")
+ggsave(filename = "../results/figs/meanhb_rep.pdf", dpi = 600,width =  80, height = 80,units = "mm")
 ```
 
 
@@ -339,6 +423,35 @@ px <- ggarrange(p1,
 ```
 
 ```{r}
-ggsave(px,filename = "../results/figs/allfour_rep.pdf", dpi = 600,width =  180, height = 400,units = "mm")
+ggsave(px,filename = "../results/figs/allfour_rep.pdf", dpi = 600,width =  80, height = 300,units = "mm")
+ggsave(px,filename = "../results/figs/allfour_rep.png", dpi = 600,width =  80, height = 300,units = "mm")
+#ggsave(px,filename = "../results/figs/allfour_rep.eps", dpi = 600,width =  80, height = 400,units = "mm") # EPS does not work as it does not allow for transparency
+```
+
+
+```{r}
+
+
+pnx <- ggarrange(
+          p1n,
+          p1,
+          p2n,
+          p2,
+          p3n,
+          p3,
+          p4n,
+          p4,
+          labels=c("A","","B","","C","","D"),
+          ncol=2,
+          nrow=4)
+pnx
+
+```
+
+
+```{r}
+ggsave(pnx,filename = "../results/figs/allfour_new_rep.pdf", dpi = 600,width =  180, height = 300,units = "mm")
+ggsave(pnx,filename = "../results/figs/allfour_new_rep.png", dpi = 600,width =  180, height = 300,units = "mm")
+ggsave(pnx,filename = "../results/figs/allfour_new_rep.tiff", dpi = 600,width =  180, height = 300,units = "mm")
 ```
 
